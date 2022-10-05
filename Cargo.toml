@@ -1,0 +1,27 @@
+[package]
+name = "pattern_roller_maker"
+authors = ["Stepan Botman"]
+license = "MIT"
+repository = "https://github.com/stbotman/pattern_roller_maker"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.61"
+publish = false
+
+[dependencies]
+image = "0.24"
+anyhow = "1.0"
+
+[dependencies.clap]
+version = "3.2"
+default-features = false
+features = ["std"]
+
+[profile.release]
+strip = true
+panic = "abort"
+codegen-units = 1
+
+[[bin]]
+name = "img2roller"
+path = "src/main.rs"

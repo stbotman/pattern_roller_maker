@@ -1,0 +1,76 @@
+name: Build Release Binaries
+on:
+  push:
+    tags:
+    - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+jobs:
+  dist:
+    name: Dist
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [x86_64-linux, x86_64-macos, x86_64-windows, aarch64-macos]
+        include:
+        - build: x86_64-linux
+          os: ubuntu-22.04
+          target: x86_64-unknown-linux-gnu
+        - build: x86_64-macos
+          os: macos-latest
+          target: x86_64-apple-darwin
+        - build: x86_64-windows
+          os: windows-latest
+          target: x86_64-pc-windows-msvc
+        - build: aarch64-macos
+          os: macos-latest
+          rust: stable
+          target: aarch64-apple-darwin
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install rust stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Build release binary
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: false
+          command: build
+          args: --release --target ${{ matrix.target }}
+
+      - name: Move binary
+        shell: bash
+        run: |
+          mkdir dist
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cp "target/${{ matrix.target }}/release/img2roller.exe" "dist/"
+          else
+            cp "target/${{ matrix.target }}/release/img2roller" "dist/"
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: bins-${{ matrix.build }}
+          path: dist
+      
+      - name: Compress
+        uses: thedoctor0/zip-release@main
+        with:
+          filename: ${{ matrix.target }}-release.zip
+          path: dist/*
+      
+      - name: Attach bins to release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ matrix.target }}-release.zip
