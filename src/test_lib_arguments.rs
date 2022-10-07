@@ -15,8 +15,6 @@ fn test_conflicting_arguments() {
     assert!(parameters.is_err());
     let parameters = test_cli_arguments("img2roller -l 1 --pd 1 --pl 1 --cd 1 test.png");
     assert!(parameters.is_err());
-    let parameters = test_cli_arguments("img2roller -l 1 -b -a test.png");
-    assert!(parameters.is_err());
 }
 
 #[test]
