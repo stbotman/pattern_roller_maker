@@ -1,5 +1,5 @@
 use crate::lib_arguments::{Parameters, RollerEnd};
-use anyhow::{Context, Result};
+use anyhow::{Context, Error, Result};
 use std::f64::consts::TAU;
 use std::f64::EPSILON;
 use std::fmt;
@@ -16,18 +16,19 @@ impl STLFileWriter {
     const HEADER_TEXT: [u8; 14] = *b"pattern roller";
     const SPACER: [u8; 2] = [0u8; 2];
 
+    fn write_data(&mut self, data: &[u8]) -> Result<()> {
+        self.buffered_file.write_all(&data).map_err(Error::from)
+    }
+
     fn write_header(&mut self) -> Result<()> {
         let mut header: Vec<u8> = Vec::with_capacity(STLFileWriter::HEADER_SIZE);
         header.extend_from_slice(&STLFileWriter::HEADER_TEXT);
         header.resize(STLFileWriter::HEADER_SIZE, 0u8);
-        self.buffered_file.write_all(&header)?;
-        Ok(())
+        self.write_data(&header)
     }
 
     fn write_n_faces(&mut self) -> Result<()> {
-        self.buffered_file
-            .write_all(&self.faces_count.to_le_bytes())?;
-        Ok(())
+        self.write_data(&self.faces_count.to_le_bytes())
     }
 
     fn write_face(
@@ -41,12 +42,11 @@ impl STLFileWriter {
             debug_face_data(vec_n, vec_a, vec_b, vec_c);
             self.faces_count -= 1;
         }
-        self.buffered_file.write_all(&vec_n.to_binary())?;
-        self.buffered_file.write_all(&vec_a.to_binary())?;
-        self.buffered_file.write_all(&vec_b.to_binary())?;
-        self.buffered_file.write_all(&vec_c.to_binary())?;
-        self.buffered_file.write_all(&STLFileWriter::SPACER)?;
-        Ok(())
+        self.write_data(&vec_n.to_binary())?;
+        self.write_data(&vec_a.to_binary())?;
+        self.write_data(&vec_b.to_binary())?;
+        self.write_data(&vec_c.to_binary())?;
+        self.write_data(&STLFileWriter::SPACER)
     }
 
     fn write_face_auto_normal(
@@ -59,7 +59,7 @@ impl STLFileWriter {
         self.write_face(&vec_n, vec_a, vec_b, vec_c)
     }
 
-    pub fn new(params: &Parameters) -> Result<STLFileWriter, anyhow::Error> {
+    pub fn new(params: &Parameters) -> Result<STLFileWriter> {
         let filename = params.output_filename.as_str();
         let file = File::create(filename)
             .with_context(|| format!("Failed to open file '{}' for writing", filename))?;
@@ -89,9 +89,7 @@ pub fn make_pattern_roller(params: &Parameters, mut stl_writer: STLFileWriter) -
     let big_circle = CircleConverter::new(params.circle_points() as usize, params.roller_diameter);
     make_cylinder_patterned(&mut stl_writer, &params, &big_circle)?;
     match params.roller_end {
-        RollerEnd::Flat => {
-            make_lids_solid(&mut stl_writer, &params, big_circle)?;
-        }
+        RollerEnd::Flat => make_lids_solid(&mut stl_writer, &params, big_circle),
         RollerEnd::Pin {
             circle_points,
             pin_diameter,
@@ -112,7 +110,7 @@ pub fn make_pattern_roller(params: &Parameters, mut stl_writer: STLFileWriter) -
                 &small_circle,
                 pin_diameter,
                 pin_length,
-            )?;
+            )
         }
         RollerEnd::Channel {
             circle_points,
@@ -127,10 +125,9 @@ pub fn make_pattern_roller(params: &Parameters, mut stl_writer: STLFileWriter) -
                 &small_circle,
                 channel_diameter,
                 0.0,
-            )?;
+            )
         }
-    };
-    Ok(())
+    }
 }
 
 fn make_cylinder_patterned(

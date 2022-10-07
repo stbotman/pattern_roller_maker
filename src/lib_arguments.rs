@@ -36,7 +36,7 @@ pub enum RollerEnd {
 }
 
 impl Parameters {
-    pub fn parse_arguments_and_file() -> Result<Parameters, anyhow::Error> {
+    pub fn parse_arguments_and_file() -> Result<Parameters> {
         let matches = cli_command().get_matches();
         let input_filename = matches.get_one::<String>("filename").unwrap();
         let raw_image = get_image_from_file(input_filename)?;
@@ -47,7 +47,7 @@ impl Parameters {
         self.image_width * self.stack_horizontal
     }
 
-    pub fn faces_count(&self) -> Result<u32, anyhow::Error> {
+    pub fn faces_count(&self) -> Result<u32> {
         const OVERFLOW_ERROR_TEXT: &str =
             "Overflow in STL face counter: resulting model is too big";
         let full_body_width_points = self.image_width * self.stack_horizontal;
@@ -92,7 +92,7 @@ impl Parameters {
 }
 
 impl Parameters {
-    fn bytes_estimate(&self) -> Result<u64, anyhow::Error> {
+    fn bytes_estimate(&self) -> Result<u64> {
         let n_faces = self.faces_count()? as u64;
         Ok(50 * n_faces + 84)
     }
@@ -115,7 +115,7 @@ impl Parameters {
         size_string
     }
 
-    pub fn print_summary(&self) -> Result<(), anyhow::Error> {
+    pub fn print_summary(&self) -> Result<()> {
         let size_string = Parameters::format_bytes_size(self.bytes_estimate()?);
         println!(
             "length: {:.2} diameter: {:.2} filesize: {}",
@@ -184,10 +184,7 @@ fn rescale_min_max(input_vector: Vec<u16>, inverted: bool, new_min: f64, new_max
     }
 }
 
-fn parse_macthes(
-    matches: ArgMatches,
-    raw_image: DynamicImage,
-) -> Result<Parameters, anyhow::Error> {
+fn parse_macthes(matches: ArgMatches, raw_image: DynamicImage) -> Result<Parameters> {
     let stack_horizontal: u32 = *matches.get_one::<u32>("stack_horizontal").unwrap_or(&1u32);
     let stack_vertical: u32 = *matches.get_one::<u32>("stack_vertical").unwrap_or(&1u32);
     let surface_width_px: u32 = raw_image.width() * stack_horizontal;
