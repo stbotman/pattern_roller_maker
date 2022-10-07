@@ -17,7 +17,7 @@ impl STLFileWriter {
     const SPACER: [u8; 2] = [0u8; 2];
 
     fn write_data(&mut self, data: &[u8]) -> Result<()> {
-        self.buffered_file.write_all(&data).map_err(Error::from)
+        self.buffered_file.write_all(data).map_err(Error::from)
     }
 
     fn write_header(&mut self) -> Result<()> {
@@ -86,7 +86,10 @@ impl Drop for STLFileWriter {
 }
 
 pub fn make_pattern_roller(params: &Parameters, mut stl_writer: STLFileWriter) -> Result<()> {
-    let big_circle = CircleConverter::new(params.circle_points() as usize, params.roller_diameter);
+    let big_circle = CircleConverter::new(
+        params.circle_points() as usize,
+        params.roller_diameter * 0.5,
+    );
     make_cylinder_patterned(&mut stl_writer, &params, &big_circle)?;
     match params.roller_end {
         RollerEnd::Flat => make_lids_solid(&mut stl_writer, &params, big_circle),
@@ -95,7 +98,8 @@ pub fn make_pattern_roller(params: &Parameters, mut stl_writer: STLFileWriter) -
             pin_diameter,
             pin_length,
         } => {
-            let small_circle = CircleConverter::new(circle_points as usize, params.roller_diameter);
+            let small_circle =
+                CircleConverter::new(circle_points as usize, params.roller_diameter * 0.5);
             make_pins(
                 &mut stl_writer,
                 &params,
@@ -116,7 +120,8 @@ pub fn make_pattern_roller(params: &Parameters, mut stl_writer: STLFileWriter) -
             circle_points,
             channel_diameter,
         } => {
-            let small_circle = CircleConverter::new(circle_points as usize, params.roller_diameter);
+            let small_circle =
+                CircleConverter::new(circle_points as usize, params.roller_diameter * 0.5);
             make_channel(&mut stl_writer, &params, &small_circle, channel_diameter)?;
             make_lids_holed(
                 &mut stl_writer,
