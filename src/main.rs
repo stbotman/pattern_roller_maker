@@ -1,7 +1,15 @@
-mod lib_arguments;
-mod lib_geometry;
-use lib_arguments::Parameters;
-use lib_geometry::{make_pattern_roller, STLFileWriter};
+mod circles;
+mod cli;
+mod construct;
+mod eartrim;
+mod image;
+mod parameters;
+mod split;
+mod stl;
+mod vectors;
+use crate::stl::STLFileWriter;
+use construct::make_pattern_roller;
+use parameters::Parameters;
 use std::process::ExitCode;
 
 fn actual_work() -> Result<(), anyhow::Error> {
