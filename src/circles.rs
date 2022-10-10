@@ -9,14 +9,11 @@ pub struct CircleConverter {
 
 impl CircleConverter {
     pub fn new(n_points: usize, axis_shift: f64) -> CircleConverter {
-        let mut sin_cos_table: Vec<(f64, f64)> = Vec::with_capacity(n_points + 1);
-        let mut phi: f64;
         let phi_step = TAU / { n_points as f64 };
-        for n in 0..n_points {
-            phi = { n as f64 } * phi_step;
-            sin_cos_table.push(phi.sin_cos());
-        }
-        sin_cos_table.push(sin_cos_table[0]);
+        let sin_cos_table = (0..n_points)
+            .chain(Some(0))
+            .map(|n| (n as f64 * phi_step).sin_cos())
+            .collect::<Vec<_>>();
         CircleConverter {
             sin_cos_table: sin_cos_table,
             axis_shift: axis_shift,

@@ -7,10 +7,10 @@ mod parameters;
 mod split;
 mod stl;
 mod vectors;
-use crate::stl::STLFileWriter;
 use construct::make_pattern_roller;
 use parameters::Parameters;
 use std::process::ExitCode;
+use stl::STLFileWriter;
 
 fn actual_work() -> Result<(), anyhow::Error> {
     let parameters = Parameters::parse_arguments_and_file()?;

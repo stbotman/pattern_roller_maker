@@ -125,27 +125,27 @@ impl Parameters {
 }
 
 fn parse_macthes(matches: ArgMatches, raw_image: DynamicImage) -> Result<Parameters> {
-    let stack_horizontal: u32 = *matches.get_one::<u32>("stack_horizontal").unwrap_or(&1u32);
-    let stack_vertical: u32 = *matches.get_one::<u32>("stack_vertical").unwrap_or(&1u32);
-    let surface_width_px: u32 = raw_image.width() * stack_horizontal;
-    let surface_height_px: u32 = raw_image.height() * stack_vertical;
-    let surface_aspect_ratio: f64 = { surface_width_px as f64 } / { surface_height_px as f64 };
+    let stack_horizontal = *matches.get_one::<u32>("stack_horizontal").unwrap_or(&1u32);
+    let stack_vertical = *matches.get_one::<u32>("stack_vertical").unwrap_or(&1u32);
+    let surface_width_px = raw_image.width() * stack_horizontal;
+    let surface_height_px = raw_image.height() * stack_vertical;
+    let surface_aspect_ratio = { surface_width_px as f64 } / { surface_height_px as f64 };
     let (diameter, length, pixel_size) = if matches.contains_id("roller_diameter") {
-        let diameter: f64 = *matches.get_one::<f64>("roller_diameter").unwrap();
-        let pixel_size: f64 = PI * diameter / { surface_width_px as f64 };
-        let length: f64 = PI * diameter / surface_aspect_ratio;
+        let diameter = *matches.get_one::<f64>("roller_diameter").unwrap();
+        let pixel_size = PI * diameter / { surface_width_px as f64 };
+        let length = PI * diameter / surface_aspect_ratio;
         (diameter, length, pixel_size)
     } else {
-        let length: f64 = *matches.get_one::<f64>("roller_length").unwrap();
-        let pixel_size: f64 = length / { surface_height_px as f64 };
-        let diameter: f64 = length * surface_aspect_ratio / PI;
+        let length = *matches.get_one::<f64>("roller_length").unwrap();
+        let pixel_size = length / { surface_height_px as f64 };
+        let diameter = length * surface_aspect_ratio / PI;
         (diameter, length, pixel_size)
     };
     ensure!(
         diameter > 0.0 && length > 0.0,
         "All roller dimensions should be greater than zero"
     );
-    let relief_depth: f64 = *matches
+    let relief_depth = *matches
         .get_one::<f64>("relief_depth")
         .unwrap_or(&(0.02 * &diameter));
     ensure!(
@@ -159,7 +159,7 @@ fn parse_macthes(matches: ArgMatches, raw_image: DynamicImage) -> Result<Paramet
         diameter * 0.5
     );
     let (image, image_width, image_height, grid_step) = if matches.contains_id("grid_step") {
-        let grid_step: f64 = *matches.get_one::<f64>("grid_step").unwrap();
+        let grid_step = *matches.get_one::<f64>("grid_step").unwrap();
         let scale = pixel_size / grid_step;
         let target_width = (scale * { raw_image.width() as f64 }).round() as u32;
         let target_height = (scale * { raw_image.height() as f64 }).round() as u32;
