@@ -56,12 +56,6 @@ jobs:
           else
             cp "target/${{ matrix.target }}/release/img2roller" "dist/"
           fi
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: bins-${{ matrix.build }}
-          path: dist
       
       - name: Compress
         uses: thedoctor0/zip-release@main
